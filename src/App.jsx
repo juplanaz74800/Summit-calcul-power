@@ -119,7 +119,7 @@ export default function App() {
       {/* Footer — desktop only */}
       <footer className="hidden sm:block text-center py-8">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-300">
-          Propulsé par les modèles Puissance critique & Riegel
+          &copy; {new Date().getFullYear()} Summitraining. Tous droits réservés.
         </p>
       </footer>
     </div>

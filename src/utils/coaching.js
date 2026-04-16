@@ -143,3 +143,115 @@ export function getTrailCoaching(ratio, vamCritical) {
 
     return { title: profileLabel, description, advice, session };
 }
+
+/**
+ * Helper to calculate time for a specific segment of points.
+ */
+function calculateTimeForSegment(profile, forceVelocity, intensityPct) {
+    if (!profile || profile.length < 2) return 0;
+    
+    const intensity = intensityPct / 100;
+    const vc = forceVelocity.vc * intensity;
+    const ratio = forceVelocity.ratio;
+    let seconds = 0;
+
+    for (let i = 1; i < profile.length; i++) {
+        const dKm = profile[i].distanceKm - (profile[i-1]?.distanceKm || 0);
+        if (dKm <= 0) continue;
+
+        const grade = profile[i].grade;
+        let speed;
+
+        if (grade >= 0) {
+            const refSlope = 12; 
+            const ratioWeight = refSlope > 0 ? Math.min(grade / refSlope, 1) : 0;
+            const effectiveRatio = grade > 0 ? (1 + (ratio - 1) * ratioWeight) : 1;
+            const baseTheoreticalSpeed = vc / (1 + (grade / 100) * 8); 
+            speed = baseTheoreticalSpeed * effectiveRatio;
+        } else {
+            const absGrade = Math.abs(grade);
+            if (absGrade <= 10) {
+                speed = vc * (1 + (absGrade / 10) * 0.15);
+            } else if (absGrade <= 25) {
+                speed = vc * (1.15 - ((absGrade - 10) / 15) * 0.45);
+            } else {
+                speed = vc * (0.7 / (1 + (absGrade - 25) / 15));
+            }
+        }
+
+        if (speed > 0.5) {
+            seconds += (dKm / speed) * 3600;
+        } else {
+            seconds += (dKm / 0.5) * 3600;
+        }
+    }
+    return seconds;
+}
+
+/**
+ * Generate a comprehensive report for a GPX track based on athlete profile.
+ */
+export function getTrailReport(analysis, forceVelocity, intensityPct = 85) {
+    if (!analysis || !forceVelocity || !analysis.profile) return null;
+
+    // Total Track Time
+    const totalSeconds = calculateTimeForSegment(analysis.profile, forceVelocity, intensityPct);
+
+    // Nutrition & Hydration
+    const durationHours = totalSeconds / 3600;
+    const waterLiters = durationHours * 0.65;
+    const carbsGrams = durationHours * 75;
+
+    // Detailed Segment Times (Climbs)
+    const topClimbEstimates = analysis.topClimbs.map(c => {
+        const segmentPts = analysis.profile.filter(p => p.distanceKm >= c.startKm && p.distanceKm <= c.endKm);
+        const seconds = calculateTimeForSegment(segmentPts, forceVelocity, intensityPct);
+        const distKm = c.distanceM / 1000;
+        return {
+            ...c,
+            estimatedTimeSeconds: seconds,
+            formattedTime: formatTime(seconds),
+            avgPace: seconds > 0 ? speedToPace(distKm / (seconds / 3600)) : '--:--'
+        };
+    });
+
+    // Detailed Segment Times (Descents)
+    const topDescentEstimates = analysis.topDescents.map(c => {
+        const segmentPts = analysis.profile.filter(p => p.distanceKm >= c.startKm && p.distanceKm <= c.endKm);
+        const seconds = calculateTimeForSegment(segmentPts, forceVelocity, intensityPct);
+        const distKm = c.distanceM / 1000;
+        return {
+            ...c,
+            estimatedTimeSeconds: seconds,
+            formattedTime: formatTime(seconds),
+            avgPace: seconds > 0 ? speedToPace(distKm / (seconds / 3600)) : '--:--'
+        };
+    });
+
+    // Crux Analysis (Hardest part)
+    const crux = topClimbEstimates.length ? topClimbEstimates.reduce((a, b) => b.difficulty > a.difficulty ? b : a) : null;
+    let cruxAdvice = "";
+    if (crux) {
+        if (crux.avgGrade > 15) {
+            cruxAdvice = "Pente très raide : privilégie la marche active avec les mains sur les genoux ou bâtons.";
+        } else if (crux.distanceM > 2000) {
+            cruxAdvice = "Montée très longue : garde une intensité constante pour ne pas exploser.";
+        } else {
+            cruxAdvice = "Section exigeante : gère ton souffle et évite les à-coups.";
+        }
+    }
+
+    return {
+        estimatedSeconds: totalSeconds,
+        formattedTime: formatTime(totalSeconds),
+        waterLiters: waterLiters.toFixed(1),
+        carbsGrams: Math.round(carbsGrams),
+        climbDist: analysis.stats.totalDplus,
+        avgPace: speedToPace(analysis.stats.totalDistanceKm / (totalSeconds / 3600)),
+        crux,
+        cruxAdvice,
+        intensityPct,
+        topClimbEstimates,
+        topDescentEstimates
+    };
+}

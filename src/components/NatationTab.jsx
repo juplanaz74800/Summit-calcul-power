@@ -33,36 +33,46 @@ export default function NatationTab() {
                     Entre ton meilleur rythme moyen par 100 m pour les distances suivantes afin de calculer la CSS.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    {[
-                        { key: 'v100', dist: '100m' },
-                        { key: 'v400', dist: '400m' },
-                        { key: 'v1000', dist: '1000m' },
-                    ].map(({ key, dist }) => (
-                        <div key={key} className="bg-slate-50/50 p-6 rounded-3xl border border-slate-200/60 shadow-sm">
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Distance</span>
-                                <span className="text-sm font-bold text-slate-800">{dist}</span>
-                            </div>
-                            <label className="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">Allure (MM:SS)</label>
-                            <input
-                                type="text"
-                                value={paces[key]}
-                                onChange={e => setPaces(p => ({ ...p, [key]: e.target.value }))}
-                                className="w-full px-4 py-2.5 bg-white border-transparent focus:border-blue-500 border rounded-xl text-sm shadow-sm focus:ring-2 focus:ring-blue-100 transition-all outline-none text-slate-700 font-medium"
-                            />
+                <div className="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm space-y-4 max-w-lg mb-8">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2 mb-2">
+                        <div className="w-5 h-5 bg-slate-100 rounded flex items-center justify-center"><Activity className="w-3 h-3 text-slate-600"/></div>
+                        Allures sur 100m
+                    </h3>
+                    
+                    <div className="space-y-2.5">
+                        <div className="flex px-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                            <div className="w-20">Test</div>
+                            <div className="flex-1">Allure moy. (MM:SS)</div>
                         </div>
-                    ))}
+                        
+                        {[
+                            { key: 'v100', dist: '100m' },
+                            { key: 'v400', dist: '400m' },
+                            { key: 'v1000', dist: '1000m' },
+                        ].map(({ key, dist }) => (
+                            <div key={key} className="flex items-center gap-3 bg-slate-50/50 hover:bg-slate-50 p-1.5 rounded-xl border border-slate-100 transition-colors focus-within:border-slate-300 focus-within:bg-white">
+                                <div className="w-20 shrink-0 text-center">
+                                    <span className="text-[10px] font-black text-slate-500 bg-slate-200/50 px-2 py-1 rounded-lg inline-block w-full">{dist}</span>
+                                </div>
+                                <div className="flex-1">
+                                    <input type="text" placeholder="01:30" value={paces[key]} onChange={e => setPaces(p => ({ ...p, [key]: e.target.value }))} className="w-full text-sm bg-transparent font-bold text-slate-700 outline-none placeholder:text-slate-300 pl-2" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* CSS Result */}
                 {css && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div className="relative overflow-hidden p-6 rounded-[2rem] bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-xl shadow-cyan-500/20">
+                        <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden flex flex-col justify-center">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-100 mb-1">Vitesse critique natation (CSS)</p>
-                            <p className="text-5xl font-bold tracking-tight">{cssPace} <span className="text-lg font-medium text-cyan-200">/100m</span></p>
-                            <p className="text-sm text-cyan-100 mt-2 font-medium opacity-80">{css.css.toFixed(2)} m/s</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-100 mb-1 relative z-10">Vitesse critique natation (CSS)</p>
+                            <div className="flex items-baseline gap-1 mt-1 relative z-10">
+                                <p className="text-5xl font-black tracking-tight text-white">{cssPace}</p>
+                                <span className="text-lg font-bold text-blue-100">/100m</span>
+                            </div>
+                            <p className="text-sm text-blue-100 mt-2 font-medium relative z-10">{css.css.toFixed(2)} m/s</p>
                         </div>
                     </div>
                 )}

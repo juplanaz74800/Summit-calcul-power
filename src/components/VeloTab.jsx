@@ -119,31 +119,33 @@ export default function VeloTab() {
                 
                 {/* COLUMN 1: Inputs & Data */}
                 <div className="flex flex-col gap-6">
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-sm font-bold text-stone-800 uppercase tracking-wider">Données d'effort</h3>
-                        </div>
-                        {activeEntries.map((entry, i) => (
-                            <div key={i} className="bg-stone-50 p-4 rounded-2xl border border-stone-100/80">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-stone-200 text-[10px] font-bold text-stone-600">Test {i + 1}</span>
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="col-span-2">
-                                        <label className="block text-[10px] font-bold text-stone-500 mb-1 uppercase tracking-wider">Durée (secs)</label>
-                                        <input type="number" value={entry.duration} onChange={e => update(i, 'duration', e.target.value)} className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm transition-all focus:border-stone-400 focus:ring-0 outline-none text-stone-800 font-medium" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-stone-500 mb-1 uppercase tracking-wider">Watts moy</label>
-                                        <input type="number" value={entry.power} onChange={e => update(i, 'power', e.target.value)} className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm transition-all focus:border-stone-400 focus:ring-0 outline-none text-stone-800 font-medium" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-stone-500 mb-1 uppercase tracking-wider">FC moy</label>
-                                        <input type="number" value={entry.hr} onChange={e => update(i, 'hr', e.target.value)} className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm transition-all focus:border-stone-400 focus:ring-0 outline-none text-stone-800 font-medium" />
-                                    </div>
-                                </div>
+                    <div className="bg-white p-5 rounded-[2rem] border border-stone-200 shadow-sm space-y-4">
+                        <h3 className="text-xs font-bold text-stone-800 uppercase tracking-widest flex items-center gap-2 mb-2">
+                            <div className="w-5 h-5 bg-stone-100 rounded flex items-center justify-center"><Zap className="w-3 h-3 text-stone-600"/></div>
+                            Tests de Puissance
+                        </h3>
+                        
+                        <div className="space-y-2.5">
+                            <div className="flex px-2 text-[8px] font-bold text-stone-400 uppercase tracking-widest">
+                                <div className="w-16">Secs</div>
+                                <div className="flex-1">Watts moy</div>
+                                <div className="w-16 text-center">BPM</div>
                             </div>
-                        ))}
+                            
+                            {activeEntries.map((entry, i) => (
+                                <div key={i} className="flex items-center gap-2 bg-stone-50/50 hover:bg-stone-50 p-1.5 rounded-xl border border-stone-100 transition-colors focus-within:border-stone-300 focus-within:bg-white">
+                                    <div className="w-16 shrink-0">
+                                        <input type="number" placeholder="120" value={entry.duration} onChange={e => update(i, 'duration', e.target.value)} className="w-full text-xs bg-stone-200/50 px-2 py-1 rounded-lg font-black text-stone-600 outline-none text-center" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <input type="number" placeholder="300" value={entry.power} onChange={e => update(i, 'power', e.target.value)} className="w-full text-sm bg-transparent font-bold text-stone-700 outline-none placeholder:text-stone-300 pl-2" />
+                                    </div>
+                                    <div className="w-16 shrink-0 border-l border-stone-200 pl-2">
+                                        <input type="number" placeholder="-" value={entry.hr} onChange={e => update(i, 'hr', e.target.value)} className="w-full text-sm bg-transparent font-semibold text-stone-600 outline-none placeholder:text-stone-300 text-center" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Coaching Analysis */}
@@ -187,11 +189,12 @@ export default function VeloTab() {
                                 <h3 className="text-sm font-bold text-stone-800 uppercase tracking-wider">Métriques Clés</h3>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-5 rounded-2xl bg-white border border-stone-100 shadow-sm border-t-4 border-t-blue-500 flex flex-col justify-center transform transition-transform hover:-translate-y-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1 flex items-center gap-1"><Zap className="w-3 h-3 text-stone-400"/>Puissance Critique</p>
-                                    <div className="flex items-baseline gap-1 mt-1">
-                                        <p className="text-4xl font-black tracking-tight text-stone-800">{model.cp.toFixed(0)}</p>
-                                        <span className="text-sm font-bold text-stone-400">W</span>
+                                <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden col-span-2 sm:col-span-1 flex flex-col justify-center">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-blue-100 mb-1 flex items-center gap-1 relative z-10"><Zap className="w-3 h-3 text-blue-100"/>Puissance Critique (PC)</p>
+                                    <div className="flex items-baseline gap-1 mt-1 relative z-10">
+                                        <p className="text-5xl font-black tracking-tight text-white">{model.cp.toFixed(0)}</p>
+                                        <span className="text-lg font-bold text-blue-100">W</span>
                                     </div>
                                 </div>
                                 
