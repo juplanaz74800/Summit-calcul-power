@@ -84,45 +84,52 @@ export default function PredireTab() {
     }, [model, mode]);
 
     return (
-        <div className="space-y-6">
-            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-[2rem] shadow-[0_2px_40px_rgb(0,0,0,0.04)] border border-stone-100">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-                    <h2 className="text-2xl font-bold text-stone-800 flex items-center gap-3">
-                        <div className="p-2.5 bg-stone-100 rounded-xl"><Zap className="text-stone-600 w-5 h-5" /></div>
+        <div className="space-y-8">
+            <div className="bg-surface-container-low p-6 sm:p-8 lg:p-10 rounded-[3rem] shadow-2xl shadow-on-surface/5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 gap-8">
+                    <h2 className="text-3xl font-black text-on-surface flex items-center gap-4 font-lexend tracking-tight">
+                        <div className="p-3 bg-primary/10 rounded-2xl shadow-inner"><Zap className="text-primary w-6 h-6" /></div>
                         Estimateur & Profil
                     </h2>
                     
-                    {/* Mode Toggle */}
-                    <div className="flex p-1 bg-stone-100 rounded-xl w-fit border border-stone-200/60">
-                        <button onClick={() => setMode('running')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${mode === 'running' ? 'bg-white text-blue-600 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>Course</button>
-                        <button onClick={() => setMode('cycling')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${mode === 'cycling' ? 'bg-white text-blue-600 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>Vélo</button>
+                    {/* Mode Toggle — Premium Segmented Control */}
+                    <div className="flex p-1.5 bg-surface-container-high/50 rounded-2xl w-fit">
+                        <button 
+                            onClick={() => setMode('running')} 
+                            className={`px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${mode === 'running' ? 'bg-surface text-primary shadow-lg shadow-primary/5' : 'text-tertiary hover:text-on-surface'}`}
+                        >
+                            Course
+                        </button>
+                        <button 
+                            onClick={() => setMode('cycling')} 
+                            className={`px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${mode === 'cycling' ? 'bg-surface text-primary shadow-lg shadow-primary/5' : 'text-tertiary hover:text-on-surface'}`}
+                        >
+                            Vélo
+                        </button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.3fr_1fr] gap-6 lg:gap-8 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr_1fr] gap-8 lg:gap-12 items-start text-on-surface">
                     
-                    {/* COLUMN 1: Inputs & Info */}
-                    <div className="flex flex-col gap-6">
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-stone-800 uppercase tracking-wider mb-2">Performances de réf.</h3>
-                            <p className="text-xs text-stone-500 leading-relaxed mb-4">
-                                Idéalement un test court (~5 min), un moyen (~15 min), et un long (~35 min) pour calibrer la courbe.
-                            </p>
+                    {/* COLUMN 1: Inputs & Estimator */}
+                    <div className="flex flex-col gap-8">
+                        <div className="space-y-6">
+                            <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.25em] mb-4 font-lexend">Performances de Réf.</h3>
                             
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {entries.map((e, i) => (
-                                    <div key={e.id} className="bg-white p-4 rounded-xl border border-stone-200">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <span className="w-5 h-5 flex items-center justify-center bg-stone-100 rounded-full text-[10px] font-bold text-stone-600">{i + 1}</span>
+                                    <div key={e.id} className="bg-surface-container p-5 rounded-[2rem] shadow-sm transition-all hover:bg-surface-container-high group">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <span className="text-[9px] font-black text-primary/30 uppercase tracking-[0.2em] font-space italic">Test {i + 1}</span>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Durée</label>
-                                                <input type="text" value={e.duration} placeholder="00:05:00" onChange={ev => update(e.id, 'duration', ev.target.value)} className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="block text-[8px] font-black text-tertiary uppercase tracking-widest font-space">Durée</label>
+                                                <input type="text" value={e.duration} placeholder="00:05:00" onChange={ev => update(e.id, 'duration', ev.target.value)} className="w-full px-3 py-2 bg-surface-container-low/50 text-on-surface font-black font-space rounded-xl outline-none focus:ring-1 focus:ring-primary/20 transition-all text-sm" />
                                             </div>
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">{metricLabel}</label>
-                                                <input type="text" value={e.value} placeholder={mode === 'running' ? '04:00' : '250'} onChange={ev => update(e.id, 'value', ev.target.value)} className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" />
+                                            <div className="space-y-1.5">
+                                                <label className="block text-[8px] font-black text-tertiary uppercase tracking-widest font-space">{metricLabel.split(' (')[0]}</label>
+                                                <input type="text" value={e.value} placeholder={mode === 'running' ? '04:00' : '250'} onChange={ev => update(e.id, 'value', ev.target.value)} className="w-full px-3 py-2 bg-surface-container-low/50 text-on-surface font-black font-space rounded-xl outline-none focus:ring-1 focus:ring-primary/20 transition-all text-sm" />
                                             </div>
                                         </div>
                                     </div>
@@ -130,128 +137,129 @@ export default function PredireTab() {
                             </div>
                         </div>
 
-                        {/* Estimator Box */}
-                        <div className="bg-stone-50 rounded-2xl border border-stone-100 p-5 mt-2">
-                            <h4 className="text-sm font-bold text-stone-800 mb-2 flex items-center gap-2"><Activity className="w-4 h-4 text-stone-500" /> Estimation</h4>
-                            <p className="text-xs text-stone-500 mb-4">{mode === 'running' ? 'Temps pour une distance :' : 'Temps pour une puissance :'}</p>
+                        {/* Estimator Box — Action Oriented */}
+                        <div className="bg-primary p-7 rounded-[2.5rem] shadow-xl shadow-primary/20 text-white relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 mb-6 font-lexend flex items-center gap-2">
+                                <Activity className="w-4 h-4" /> Prédiction
+                            </h4>
                             
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 {mode === 'running' ? (
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Distance (m)</label>
-                                        <input type="number" min={100} value={targetDist} onChange={e => setTargetDist(Number(e.target.value))} className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm font-medium focus:border-blue-500 outline-none" />
+                                    <div className="space-y-2">
+                                        <label className="block text-[8px] font-black uppercase tracking-widest text-white/40 font-space">Distance (mètres)</label>
+                                        <input type="number" min={100} value={targetDist} onChange={e => setTargetDist(Number(e.target.value))} className="w-full px-4 py-3 bg-white/10 border-none text-white font-black font-space rounded-2xl outline-none focus:bg-white/20 transition-all text-lg" />
                                     </div>
                                 ) : (
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Puissance (W)</label>
-                                        <input type="number" min={50} value={targetPower} onChange={e => setTargetPower(e.target.value)} className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm font-medium focus:border-blue-500 outline-none" />
+                                    <div className="space-y-2">
+                                        <label className="block text-[8px] font-black uppercase tracking-widest text-white/40 font-space">Puissance Cible (W)</label>
+                                        <input type="number" min={50} value={targetPower} onChange={e => setTargetPower(e.target.value)} className="w-full px-4 py-3 bg-white/10 border-none text-white font-black font-space rounded-2xl outline-none focus:bg-white/20 transition-all text-lg" />
                                     </div>
                                 )}
                                 
                                 {prediction ? (
-                                    <div className="pt-3 border-t border-stone-200/60">
-                                        {prediction.type === 'running' ? (
-                                            <>
-                                                <div className="flex items-baseline gap-2 mb-1">
-                                                    <span className="text-2xl font-black text-stone-800 tracking-tight">{prediction.formattedTime}</span>
+                                    <div className="pt-6 border-t border-white/10 mt-2">
+                                        <div className="flex flex-col">
+                                            <span className="text-5xl font-black font-space tracking-tighter leading-none mb-2">{prediction.formattedTime}</span>
+                                            {prediction.type === 'running' ? (
+                                                <div className="flex gap-4 text-[10px] font-black uppercase tracking-[0.1em] text-white/70 font-space">
+                                                    <span>{prediction.pace}/km</span>
+                                                    <span>{prediction.speed.toFixed(1)} km/h</span>
                                                 </div>
-                                                <div className="flex gap-3 text-sm">
-                                                    <span className="font-mono text-blue-600 font-bold">{prediction.pace}/km</span>
-                                                    <span className="text-stone-500">{prediction.speed.toFixed(1)} km/h</span>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="flex items-baseline gap-2 mb-1">
-                                                    <span className="text-2xl font-black text-stone-800 tracking-tight">{prediction.formattedTime}</span>
-                                                </div>
-                                                <p className="text-sm font-bold text-emerald-600 italic">Temps max. estimé</p>
-                                            </>
-                                        )}
+                                            ) : (
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 font-lexend italic">Capacité de maintien estimée</span>
+                                            )}
+                                        </div>
                                     </div>
                                 ) : (
-                                    <div className="pt-3 border-t border-stone-200/60 opacity-50">
-                                        <span className="text-xl font-bold text-stone-300">--:--:--</span>
+                                    <div className="pt-6 border-t border-white/10 opacity-30">
+                                        <span className="text-3xl font-black font-space tracking-tight">--:--:--</span>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    {/* COLUMN 2: Chart & Curve */}
-                    <div className="flex flex-col gap-6">
-                        <div className="space-y-4">
+                    {/* COLUMN 2: Law of Power — Visualization */}
+                    <div className="flex flex-col gap-8">
+                        <div className="space-y-6">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-bold text-stone-800 uppercase tracking-wider">Loi de Puissance</h3>
-                                <div className="text-[10px] font-bold text-stone-400 bg-stone-100 px-2 py-1 rounded-md">Modèle de Riegel</div>
+                                <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] font-lexend">Modèle de Riegel</h3>
+                                <div className="text-[8px] font-black text-tertiary/40 uppercase tracking-[0.2em] font-space italic border border-on-surface/5 px-2 py-1 rounded-lg">Power Law v4.0</div>
                             </div>
                             
-                            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 h-[350px] flex flex-col">
+                            <div className="bg-surface-container rounded-[3rem] shadow-sm p-8 h-[450px] flex flex-col group transition-all hover:shadow-lg hover:shadow-on-surface/5">
                                 {model ? (
                                     <>
-                                        <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 uppercase mb-4 px-2">
-                                            <span>Vue max : {maxHours}h</span>
-                                            <div className="flex-1 mx-4">
-                                                <input type="range" min={1} max={10} step={0.5} value={maxHours} onChange={e => setMaxHours(Number(e.target.value))} className="w-full h-1 accent-blue-500 rounded-full bg-stone-200 appearance-none cursor-pointer" />
+                                        <div className="flex items-center justify-between text-[9px] font-black text-tertiary uppercase mb-8 px-2 font-space">
+                                            <span className="text-primary">Horizontal : {maxHours}h max</span>
+                                            <div className="flex-1 mx-6">
+                                                <input type="range" min={1} max={10} step={0.5} value={maxHours} onChange={e => setMaxHours(Number(e.target.value))} className="w-full h-1 accent-primary rounded-full bg-surface-container-high appearance-none cursor-pointer" />
                                             </div>
                                         </div>
-                                        <div className="flex-1 w-full relative min-h-[220px]">
+                                        <div className="flex-1 w-full relative min-h-[250px]">
                                             <div className="absolute inset-0">
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <ComposedChart data={curve} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                                                        <XAxis dataKey="timeFormatted" tick={TICK} axisLine={false} tickLine={false} dy={10} />
-                                                        <YAxis tick={TICK} axisLine={false} tickLine={false} />
-                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                                        <Line type="monotone" dataKey="riegelModel" name={mode === 'running' ? 'Vitesse (km/h)' : 'Puissance (W)'} stroke="#3b82f6" strokeWidth={2.5} dot={false} isAnimationActive={false} />
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} strokeOpacity={0.2} />
+                                                        <XAxis dataKey="timeFormatted" tick={{ ...TICK, fill: 'var(--color-tertiary)', opacity: 0.5, fontSize: 9 }} axisLine={false} tickLine={false} dy={15} fontVariant="lining-nums" />
+                                                        <YAxis tick={{ ...TICK, fill: 'var(--color-tertiary)', opacity: 0.5, fontSize: 9 }} axisLine={false} tickLine={false} />
+                                                        <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', backgroundColor: 'var(--color-surface)', boxShadow: '0 20px 40px -10px rgb(0 0 0 / 0.1)', padding: '16px' }} />
+                                                        <Line type="monotone" dataKey="riegelModel" name={mode === 'running' ? 'km/h' : 'Watts'} stroke="var(--color-primary)" strokeWidth={4} dot={false} isAnimationActive={false} />
                                                     </ComposedChart>
                                                 </ResponsiveContainer>
                                             </div>
                                         </div>
+                                        <div className="mt-8 pt-6 border-t border-on-surface/5 flex justify-center">
+                                            <p className="text-[9px] font-black text-tertiary/30 uppercase tracking-[0.4em] font-lexend italic">Visualisation du déclin de performance</p>
+                                        </div>
                                     </>
                                 ) : (
-                                    <div className="flex-1 flex items-center justify-center border-2 border-dashed border-stone-100 rounded-xl bg-stone-50/50 text-center p-6">
-                                        <p className="text-xs text-stone-400 font-medium tracking-wide leading-relaxed">Ajoutez 2 ou 3 performances de référence pour générer la courbe.</p>
+                                    <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-tertiary/10 rounded-[2.5rem] bg-surface-container-low/50 text-center p-12">
+                                        <Zap className="w-8 h-8 text-tertiary/20 mb-4" />
+                                        <p className="text-xs text-tertiary font-black uppercase tracking-widest leading-relaxed font-lexend">Initialisation requise<br/><span className="text-[9px] opacity-40 font-medium">Ajoutez des tests pour tracer la courbe</span></p>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    {/* COLUMN 3: Table */}
-                    <div className="flex flex-col gap-6">
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-stone-800 uppercase tracking-wider mb-2">Tableau des Allures / Puissances</h3>
+                    {/* COLUMN 3: Data Table */}
+                    <div className="flex flex-col gap-8">
+                        <div className="space-y-6">
+                            <h3 className="text-[10px] font-black text-on-surface uppercase tracking-[0.3em] mb-4 font-lexend">Table de Correspondance</h3>
                             
                             {tableData ? (
-                                <div className="overflow-hidden rounded-xl border border-stone-100 bg-white shadow-sm">
+                                <div className="overflow-hidden rounded-[2.5rem] shadow-sm bg-surface-container">
                                     <table className="w-full text-left">
-                                        <thead className="bg-stone-50/80 border-b border-stone-100 text-[10px] font-bold text-stone-500 uppercase tracking-widest">
+                                        <thead className="bg-surface-container-high/50 text-[8px] font-black text-tertiary/60 uppercase tracking-[0.2em] font-space italic">
                                             <tr>
-                                                <th className="px-3 py-3">Intensité</th>
-                                                <th className="px-3 py-3 text-right">Cible</th>
-                                                <th className="px-3 py-3 text-right">Durée Max</th>
+                                                <th className="px-5 py-4">Intensité</th>
+                                                <th className="px-5 py-4 text-right">Cible</th>
+                                                <th className="px-5 py-4 text-right">T. Max</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-stone-50">
+                                        <tbody className="divide-y divide-on-surface/5">
                                             {tableData.map((r, i) => (
-                                                <tr key={i} className="hover:bg-stone-50 transition-colors group">
-                                                    <td className="px-3 py-2">
-                                                        <span className="text-xs font-bold text-stone-700">{Math.round(r.perc * 100)}%</span>
-                                                        <span className="text-[10px] font-bold text-stone-400 ml-1">{mode === 'running' ? 'VC' : 'CP'}</span>
+                                                <tr key={i} className="hover:bg-surface-container-high/50 transition-colors group cursor-default">
+                                                    <td className="px-5 py-3">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-black text-on-surface font-space">{Math.round(r.perc * 100)}%</span>
+                                                            <span className="text-[8px] font-black text-tertiary uppercase font-space opacity-40">{mode === 'running' ? 'VMA' : 'CP'}</span>
+                                                        </div>
                                                     </td>
-                                                    <td className="px-3 py-2 text-right">
+                                                    <td className="px-5 py-3 text-right">
                                                         {mode === 'running' ? (
                                                             <div className="flex flex-col items-end">
-                                                                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-mono">{r.pace}</span>
-                                                                <span className="text-[10px] font-medium text-stone-400 mt-0.5">{r.speed.toFixed(1)} km/h</span>
+                                                                <span className="text-xs font-black text-primary font-space">{r.pace}/km</span>
+                                                                <span className="text-[9px] font-medium text-tertiary italic">{r.speed.toFixed(1)} km/h</span>
                                                             </div>
                                                         ) : (
-                                                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-mono">{Math.round(r.speed)} W</span>
+                                                            <span className="text-xs font-black text-primary font-space">{Math.round(r.speed)} W</span>
                                                         )}
                                                     </td>
-                                                    <td className="px-3 py-2 text-right">
-                                                        <span className="text-xs font-medium text-stone-600">{r.timeDisplay}</span>
+                                                    <td className="px-5 py-3 text-right">
+                                                        <span className="text-xs font-black text-on-surface font-space opacity-60 group-hover:opacity-100 transition-opacity">{r.timeDisplay}</span>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -259,12 +267,11 @@ export default function PredireTab() {
                                     </table>
                                 </div>
                             ) : (
-                                <div className="p-8 text-center bg-stone-50/50 rounded-xl border border-stone-100">
-                                    <p className="text-xs font-medium text-stone-400">Ajoutez des performances pour voir le tableau.</p>
+                                <div className="p-12 text-center bg-surface-container/50 rounded-[2.5rem] border border-tertiary/5">
+                                    <p className="text-[10px] font-black text-tertiary/40 uppercase tracking-widest font-lexend">Données indisponibles</p>
                                 </div>
                             )}
                         </div>
-
                     </div>
                 </div>
             </div>

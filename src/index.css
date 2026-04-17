@@ -1,11 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #0053d0;
+  --color-primary-container: #2b6cf2;
+  --color-surface: #fff8f0;
+  --color-surface-container-low: #fbf3e4;
+  --color-surface-container: #f5edde;
+  --color-surface-container-high: #f0e7d9;
+  --color-on-surface: #1f1b13;
+  --color-tertiary: #625b50;
+  --color-outline-variant: rgba(195, 198, 215, 0.2);
+  
+  --font-lexend: "Lexend", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-space: "Space Grotesk", sans-serif;
+}
+
 body {
-  background-color: #faf9f7;
-  color: #2d2a26;
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-lexend {
+  font-family: var(--font-lexend);
+}
+
+.font-space {
+  font-family: var(--font-space);
 }
 
 /* Hide scrollbar for tab navigation */
