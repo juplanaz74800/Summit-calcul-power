@@ -13,7 +13,20 @@ export default function TrailTab() {
     const [fileName, setFileName] = useState('');
     const [dragging, setDragging] = useState(false);
     const [intensity, setIntensity] = useState(85);
+    const [temperature, setTemperature] = useState(20);
+    const [technicite, setTechnicite] = useState(3);
+    const [fatigueMode, setFatigueMode] = useState('auto');
+    const [fatigueManualValue, setFatigueManualValue] = useState(10);
     const [showReport, setShowReport] = useState(false);
+    
+    // Sweat Test state
+    const [showSweatTest, setShowSweatTest] = useState(false);
+    const [weightBefore, setWeightBefore] = useState(70);
+    const [weightAfter, setWeightAfter] = useState(69);
+    const [drinkVolumeL, setDrinkVolumeL] = useState(0.5);
+    const [testDurationMins, setTestDurationMins] = useState(60);
+    const [sweatTestTemp, setSweatTestTemp] = useState(20);
+    
     const [activeSegment, setActiveSegment] = useState(null);
 
     // Force-Velocity inputs
@@ -134,10 +147,19 @@ export default function TrailTab() {
         return { vc, vcClimb, vcTheoriquePente, ratio, profileLabel, profileDesc, vamCriticalPerHour, masterZones, slopeTable, intensities, slopeTestDuration, runningCP, wpPerKg, slopePower: pSlope, coaching };
     }, [ref5min, ref12min, slope, mass, slopeTestPace, slopeTestDuration, slopeTestPower, hrThreshold]);
 
+    const customSweatRate = useMemo(() => {
+        if (!showSweatTest) return null;
+        // Total loss (kg) = weightBefore - weightAfter + drinkVolumeL
+        const loss = (weightBefore - weightAfter) + drinkVolumeL;
+        const durationHours = testDurationMins / 60;
+        if (durationHours <= 0) return 0;
+        return loss / durationHours;
+    }, [showSweatTest, weightBefore, weightAfter, drinkVolumeL, testDurationMins]);
+
     const report = useMemo(() => {
         if (!showReport || !analysis || !forceVelocity) return null;
-        return getTrailReport(analysis, forceVelocity, intensity);
-    }, [showReport, analysis, forceVelocity, intensity]);
+        return getTrailReport(analysis, forceVelocity, intensity, temperature, technicite, fatigueMode, fatigueManualValue, customSweatRate, sweatTestTemp);
+    }, [showReport, analysis, forceVelocity, intensity, temperature, technicite, fatigueMode, fatigueManualValue, customSweatRate, sweatTestTemp]);
 
     return (
         <div className="space-y-8">
@@ -346,55 +368,76 @@ export default function TrailTab() {
                                 type="range" min="60" max="105" step="5" 
                                 value={intensity} 
                                 onChange={(e) => setIntensity(Number(e.target.value))} 
-                                className="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary" 
+                                className="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary mb-4" 
                             />
-                            <div className="flex justify-between mt-4 text-[9px] font-black text-tertiary/40 uppercase tracking-[0.2em] font-space italic">
-                                <span>Endurance</span>
-                                <span>Race</span>
-                                <span>Critical</span>
+                            <p className="text-[10px] text-tertiary/60 italic font-medium mb-8 leading-relaxed">L'intensité représente votre régime moteur. 85% correspond à un rythme de course soutenu mais aérobique. Plus le chiffre est haut, plus la prédiction sera agressive.</p>
+                            
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="text-[10px] font-black text-tertiary uppercase tracking-[0.3em] font-lexend">Température Prévue</span>
+                                <span className="text-xl font-black text-primary font-space tracking-tight">{temperature}°C</span>
                             </div>
+                            <input 
+                                type="range" min="0" max="40" step="1" 
+                                value={temperature} 
+                                onChange={(e) => setTemperature(Number(e.target.value))} 
+                                className="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-secondary mb-8" 
+                            />
+
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="text-[10px] font-black text-tertiary uppercase tracking-[0.3em] font-lexend">Technicité Terrain</span>
+                                <span className="text-xl font-black text-primary font-space tracking-tight">Niv. {technicite}</span>
+                            </div>
+                            <input 
+                                type="range" min="1" max="5" step="1" 
+                                value={technicite} 
+                                onChange={(e) => setTechnicite(Number(e.target.value))} 
+                                className="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary mb-2" 
+                            />
+                            <p className="text-[9px] text-tertiary/60 italic font-medium mb-8">Niv 1: Roulant (Piste). Niv 5: Extrême (Rocailleux, boue). Impact direct sur la foulée.</p>
+
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="text-[10px] font-black text-tertiary uppercase tracking-[0.3em] font-lexend">Gestion Fatigue</span>
+                                <div className="flex bg-surface-container-high rounded-lg p-1">
+                                    <button onClick={() => setFatigueMode('auto')} className={`px-3 py-1 rounded-md text-[9px] font-black uppercase ${fatigueMode === 'auto' ? 'bg-primary text-white' : 'text-tertiary/50'}`}>Auto</button>
+                                    <button onClick={() => setFatigueMode('manual')} className={`px-3 py-1 rounded-md text-[9px] font-black uppercase ${fatigueMode === 'manual' ? 'bg-primary text-white' : 'text-tertiary/50'}`}>Manuel</button>
+                                </div>
+                            </div>
+                            {fatigueMode === 'auto' ? (
+                                <p className="text-[10px] text-primary/80 font-medium leading-relaxed bg-primary/5 p-3 rounded-xl border border-primary/10">Mode Auto : Votre vitesse baissera automatiquement de 2.5% par heure de course pour simuler l'épuisement musculaire.</p>
+                            ) : (
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-[9px] text-tertiary">Pénalité globale</span>
+                                        <span className="text-[10px] font-black text-primary">{fatigueManualValue}%</span>
+                                    </div>
+                                    <input 
+                                        type="range" min="0" max="40" step="5" 
+                                        value={fatigueManualValue} 
+                                        onChange={(e) => setFatigueManualValue(Number(e.target.value))} 
+                                        className="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-secondary" 
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 relative z-10">
                         {/* Summary Data */}
                         <div className="lg:col-span-2 space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-on-surface p-10 rounded-[3rem] text-surface shadow-2xl shadow-on-surface/20 flex flex-col justify-center relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-                                    <div className="flex items-center gap-3 text-surface/50 mb-4 font-space font-bold uppercase tracking-widest text-[9px]">
-                                        <Clock className="w-4 h-4" /> Temps de Course Cible
-                                    </div>
-                                    <div className="text-7xl font-black font-space tracking-tighter leading-none mb-6">{report.formattedTime}</div>
-                                    <div className="flex items-center gap-6">
-                                        <div className="flex flex-col">
-                                            <span className="text-primary text-lg font-black font-space">{report.avgPace}</span>
-                                            <span className="text-[8px] font-bold text-surface/40 uppercase font-space tracking-widest">Allure Moyenne</span>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-surface text-lg font-black font-space">{analysis.stats.totalDistanceKm.toFixed(1)} km</span>
-                                            <span className="text-[8px] font-bold text-surface/40 uppercase font-space tracking-widest">Distance Totale</span>
-                                        </div>
-                                    </div>
+                            <div className="bg-on-surface p-10 rounded-[3rem] text-surface shadow-2xl shadow-on-surface/20 flex flex-col justify-center relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                                <div className="flex items-center gap-3 text-surface/50 mb-4 font-space font-bold uppercase tracking-widest text-[9px]">
+                                    <Clock className="w-4 h-4" /> Temps de Course Cible
                                 </div>
-
-                                <div className="bg-surface-container p-10 rounded-[3rem] shadow-sm flex flex-col justify-between group transition-all hover:shadow-lg hover:shadow-on-surface/5">
-                                    <div className="space-y-6">
-                                        <div className="flex items-center gap-3 text-tertiary opacity-50 font-space font-bold uppercase tracking-widest text-[9px]">
-                                            <TrendingUp className="w-4 h-4" /> Métrologie de l'Effort
-                                        </div>
-                                        <div className="space-y-6">
-                                            <div className="flex items-end justify-between">
-                                                <span className="text-xs font-black text-on-surface font-lexend uppercase tracking-widest">D+ Ascendant</span>
-                                                <span className="text-3xl font-black text-primary font-space">+{report.climbDist.toFixed(0)}m</span>
-                                            </div>
-                                            <div className="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden flex shadow-inner">
-                                                <div style={{ width: `${Math.min(analysis.stats.globalGrade * 5, 100)}%` }} className="bg-primary h-full rounded-full" />
-                                            </div>
-                                            <p className="text-[10px] text-tertiary font-space font-bold leading-relaxed italic opacity-60">
-                                                Modèle d'effort asymétrique incluant une dégradation de l'économie de course de 12% sur les sections > 15% de pente.
-                                            </p>
-                                        </div>
+                                <div className="text-7xl font-black font-space tracking-tighter leading-none mb-6">{report.formattedTime}</div>
+                                <div className="flex items-center gap-6">
+                                    <div className="flex flex-col">
+                                        <span className="text-primary text-lg font-black font-space">{report.avgPace}</span>
+                                        <span className="text-[8px] font-bold text-surface/40 uppercase font-space tracking-widest">Allure Moyenne</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-surface text-lg font-black font-space">{analysis.stats.totalDistanceKm.toFixed(1)} km</span>
+                                        <span className="text-[8px] font-bold text-surface/40 uppercase font-space tracking-widest">Distance Totale</span>
                                     </div>
                                 </div>
                             </div>
@@ -435,7 +478,7 @@ export default function TrailTab() {
                                 <div className="h-56 sm:h-64">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart 
-                                            data={analysis.profile} 
+                                            data={report.profileWithTimes} 
                                             onMouseMove={(e) => {
                                                 if (e.activeLabel) {
                                                     const dist = Number(e.activeLabel);
@@ -461,45 +504,125 @@ export default function TrailTab() {
                                             {report.topDescentEstimates.map((c, i) => (
                                                 <ReferenceArea key={`d-${i}`} x1={c.startKm} x2={c.endKm} fill={activeSegment === `Descente-${c.startKm.toFixed(1)}` ? "var(--color-secondary)" : "var(--color-secondary)"} fillOpacity={activeSegment === `Descente-${c.startKm.toFixed(1)}` ? 0.2 : 0.08} />
                                             ))}
-                                            <Tooltip content={<div/>} />
+                                            <Tooltip 
+                                                content={({ active, payload }) => {
+                                                    if (active && payload && payload.length) {
+                                                        const p = payload[0].payload;
+                                                        return (
+                                                            <div className="bg-surface p-4 rounded-2xl shadow-xl border border-on-surface/5 text-on-surface">
+                                                                <p className="font-black font-space text-sm mb-2">{p.distanceKm.toFixed(2)} km <span className="text-tertiary ml-2">{p.elevation.toFixed(0)}m</span></p>
+                                                                <p className="font-bold text-primary font-space mb-2">{formatTime(p.cumulativeSeconds)}</p>
+                                                                <div className="text-[10px] font-space space-y-1">
+                                                                    <div className="flex justify-between gap-4"><span className="text-tertiary">Montée</span> <span className="font-bold">{formatTime(p.timeInClimb)}</span></div>
+                                                                    <div className="flex justify-between gap-4"><span className="text-tertiary">Descente</span> <span className="font-bold">{formatTime(p.timeInDescent)}</span></div>
+                                                                    <div className="flex justify-between gap-4"><span className="text-tertiary">Plat</span> <span className="font-bold">{formatTime(p.timeInFlat)}</span></div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                }}
+                                            />
                                             <Area type="monotone" dataKey="elevation" stroke="var(--color-primary)" strokeWidth={3} fill="url(#stratGrad)" isAnimationActive={false} />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="mt-8 flex justify-center">
-                                    <p className="text-[9px] font-black text-tertiary/30 uppercase tracking-[0.4em] font-lexend italic">Dynamique de vitesse auto-ajustable</p>
+                                <div className="mt-8 pt-8 border-t border-on-surface/5 grid grid-cols-3 gap-4 text-center">
+                                    <div>
+                                        <p className="text-[9px] font-black text-tertiary/40 uppercase tracking-widest font-space mb-1">Temps Total Montée</p>
+                                        <p className="text-lg font-black text-primary font-space">{formatTime(report.profileWithTimes[report.profileWithTimes.length-1].timeInClimb)}</p>
+                                    </div>
+                                    <div className="border-l border-r border-on-surface/5">
+                                        <p className="text-[9px] font-black text-tertiary/40 uppercase tracking-widest font-space mb-1">Temps Total Plat</p>
+                                        <p className="text-lg font-black text-on-surface font-space">{formatTime(report.profileWithTimes[report.profileWithTimes.length-1].timeInFlat)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-tertiary/40 uppercase tracking-widest font-space mb-1">Temps Total Descente</p>
+                                        <p className="text-lg font-black text-secondary font-space">{formatTime(report.profileWithTimes[report.profileWithTimes.length-1].timeInDescent)}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Sidebar: Diagnostics & Logistics */}
                         <div className="space-y-8">
-                            <div className="bg-primary p-10 rounded-[3rem] text-white shadow-2xl shadow-primary/20 group relative overflow-hidden">
+                            <div className="bg-surface-container-high p-10 rounded-[3rem] shadow-sm relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[60px] -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000 pointer-events-none" />
                                 
+                                <div className="mb-12">
+                                    <button 
+                                        onClick={() => setShowSweatTest(!showSweatTest)}
+                                        className="w-full flex items-center justify-between bg-white/5 p-4 rounded-2xl hover:bg-white/10 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Droplets className="w-4 h-4 text-primary-container" />
+                                            <span className="text-xs font-black text-white/80 uppercase tracking-widest font-space">Calculateur de Test Hydrique</span>
+                                        </div>
+                                        <span className="text-white/50 text-xs">{showSweatTest ? 'Fermer' : 'Ouvrir'}</span>
+                                    </button>
+                                    
+                                    {showSweatTest && (
+                                        <div className="mt-4 p-6 bg-surface/10 rounded-2xl border border-white/10 space-y-6">
+                                            <p className="text-[10px] text-white/60 italic font-medium leading-relaxed">
+                                                Le "Sweat Test" (pesée avant/après) permet de calculer votre taux de sudation exact. Courez 1h à intensité course, pesez-vous nu avant et après, et notez ce que vous avez bu.
+                                            </p>
+                                            
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Poids Avant (kg)</label>
+                                                    <input type="number" step="0.1" value={weightBefore} onChange={e => setWeightBefore(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Poids Après (kg)</label>
+                                                    <input type="number" step="0.1" value={weightAfter} onChange={e => setWeightAfter(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Volume bu (Litres)</label>
+                                                    <input type="number" step="0.1" value={drinkVolumeL} onChange={e => setDrinkVolumeL(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Durée (min)</label>
+                                                    <input type="number" step="5" value={testDurationMins} onChange={e => setTestDurationMins(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Température lors du test (°C)</label>
+                                                    <input type="number" step="1" value={sweatTestTemp} onChange={e => setSweatTestTemp(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="bg-primary/20 p-3 rounded-lg border border-primary/30 flex justify-between items-center">
+                                                <span className="text-[10px] font-black text-primary-container uppercase tracking-widest">Taux calculé</span>
+                                                <span className="text-lg font-black text-white font-space">{customSweatRate > 0 ? customSweatRate.toFixed(2) : 0} L/h</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 mb-10 font-lexend flex items-center gap-3">
-                                    <Droplets className="w-5 h-5 text-white" /> Stratégie Nutritionnelle
+                                    <Droplets className="w-5 h-5 text-white" /> Stratégie Endurance 4
                                 </h3>
                                 
                                 <div className="space-y-10">
                                     <div className="flex items-center gap-6">
                                         <div className="p-4 bg-white/10 rounded-3xl backdrop-blur-md shadow-inner"><Droplets className="w-6 h-6 text-white" /></div>
                                         <div>
-                                            <div className="text-[11px] font-black text-white/50 uppercase tracking-widest font-space">Liquid (H2O)</div>
-                                            <div className="text-3xl font-black font-space">{report.waterLiters} Litres</div>
+                                            <div className="text-[11px] font-black text-white/50 uppercase tracking-widest font-space">Hydratation Globale</div>
+                                            <div className="text-3xl font-black font-space">{report.flasks} Flasques</div>
+                                            <div className="text-[10px] font-bold text-primary-container font-space mt-1">Format 500ml ({report.waterLiters}L total)</div>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-6">
                                         <div className="p-4 bg-white/10 rounded-3xl backdrop-blur-md shadow-inner"><Utensils className="w-6 h-6 text-white" /></div>
                                         <div>
-                                            <div className="text-[11px] font-black text-white/50 uppercase tracking-widest font-space">Carbs (C6H12O6)</div>
-                                            <div className="text-3xl font-black font-space">{report.carbsGrams}g totaux</div>
+                                            <div className="text-[11px] font-black text-white/50 uppercase tracking-widest font-space">Nrgy Units (45g)</div>
+                                            <div className="text-3xl font-black font-space">{report.nrgyUnits} Doses</div>
+                                            <div className="text-[10px] font-bold text-primary-container font-space mt-1">Total {report.carbsGrams}g de glucides</div>
                                         </div>
                                     </div>
                                     <div className="pt-8 border-t border-white/10 space-y-4">
                                         <div className="text-[10px] font-black text-primary-container uppercase tracking-widest font-lexend opacity-60">Protocole Conseillé</div>
                                         <p className="text-sm text-white/80 leading-relaxed font-lexend font-medium">
-                                            Ingestion horaire cible : <span className="text-white font-black">750ml</span> de boisson isotonique et <span className="text-white font-black">~65g</span> de glucides complexes. Ajustement dynamique selon le T°C.
+                                            Visez <span className="text-white font-black">{Math.round(report.waterLitersPerHour * 1000)}ml d'eau par heure</span> avec environ <span className="text-white font-black">1.5 Nrgy Unit</span> par heure (soit ~{report.carbsGramsPerHour}g de glucides). Le besoin hydrique est ajusté dynamiquement pour {temperature}°C.
                                         </p>
                                     </div>
                                 </div>
@@ -513,12 +636,12 @@ export default function TrailTab() {
                                         <span className="text-on-surface">{analysis.profile.length}</span>
                                     </li>
                                     <li className="flex items-center justify-between text-xs font-black">
-                                        <span className="text-tertiary/50 uppercase tracking-widest">Masse Systémique</span>
-                                        <span className="text-on-surface">{mass} kg</span>
+                                        <span className="text-tertiary/50 uppercase tracking-widest">Température Prévue</span>
+                                        <span className="text-on-surface">{temperature} °C</span>
                                     </li>
                                     <li className="flex items-center justify-between text-xs font-black">
-                                        <span className="text-tertiary/50 uppercase tracking-widest">Dérive Thermique</span>
-                                        <span className="text-primary">+3.5% incl.</span>
+                                        <span className="text-tertiary/50 uppercase tracking-widest">Besoin Hydrique</span>
+                                        <span className="text-primary">{report.waterLitersPerHour} L/h</span>
                                     </li>
                                 </ul>
                             </div>

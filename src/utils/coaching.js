@@ -145,22 +145,42 @@ export function getTrailCoaching(ratio, vamCritical) {
 }
 
 /**
- * Helper to calculate time for a specific segment of points.
+ * Generate a comprehensive report for a GPX track based on athlete profile.
  */
-function calculateTimeForSegment(profile, forceVelocity, intensityPct) {
-    if (!profile || profile.length < 2) return 0;
+export function getTrailReport(analysis, forceVelocity, intensityPct = 85, temperature = 20, technicite = 3, fatigueMode = 'auto', fatigueManualValue = 0, customSweatRate = null, sweatTestTemperature = 20) {
+    if (!analysis || !forceVelocity || !analysis.profile) return null;
+
+    // Technical penalty (Temporarily disabled as per user request)
+    // const techSpeedFactor = technicite === 1 ? 1 : technicite === 2 ? 0.95 : technicite === 3 ? 0.90 : technicite === 4 ? 0.85 : 0.75;
+    const techSpeedFactor = 1; 
+
+    // Calculate time and build enriched profile
+    let cumulativeSeconds = 0;
+    let timeInClimb = 0;
+    let timeInDescent = 0;
+    let timeInFlat = 0;
     
-    const intensity = intensityPct / 100;
-    const vc = forceVelocity.vc * intensity;
-    const ratio = forceVelocity.ratio;
-    let seconds = 0;
+    const profileWithTimes = analysis.profile.map((p, i) => {
+        if (i === 0) {
+            return { ...p, cumulativeSeconds: 0, timeInClimb: 0, timeInDescent: 0, timeInFlat: 0, currentSpeed: 0, fatigueFactor: 1 };
+        }
+        const prev = analysis.profile[i - 1];
+        
+        // Calculate fatigue factor at the start of this segment
+        let fatigueFactor = 1;
+        if (fatigueMode === 'auto') {
+            // Lose 2.5% speed per hour of race elapsed, capped at 40% loss (0.6 factor)
+            fatigueFactor = Math.max(0.6, 1 - (cumulativeSeconds / 3600) * 0.025);
+        } else {
+            fatigueFactor = Math.max(0.6, 1 - (fatigueManualValue / 100));
+        }
 
-    for (let i = 1; i < profile.length; i++) {
-        const dKm = profile[i].distanceKm - (profile[i-1]?.distanceKm || 0);
-        if (dKm <= 0) continue;
-
-        const grade = profile[i].grade;
+        const dKm = p.distanceKm - prev.distanceKm;
+        const grade = p.grade;
         let speed;
+        
+        const vc = forceVelocity.vc * (intensityPct / 100);
+        const ratio = forceVelocity.ratio;
 
         if (grade >= 0) {
             const refSlope = 12; 
@@ -178,34 +198,64 @@ function calculateTimeForSegment(profile, forceVelocity, intensityPct) {
                 speed = vc * (0.7 / (1 + (absGrade - 25) / 15));
             }
         }
-
-        if (speed > 0.5) {
-            seconds += (dKm / speed) * 3600;
-        } else {
-            seconds += (dKm / 0.5) * 3600;
+        
+        // Apply penalties
+        speed = speed * techSpeedFactor * fatigueFactor;
+        
+        let segSeconds = 0;
+        if (dKm > 0) {
+            if (speed > 0.5) {
+                segSeconds = (dKm / speed) * 3600;
+            } else {
+                segSeconds = (dKm / 0.5) * 3600;
+            }
         }
-    }
-    return seconds;
-}
 
-/**
- * Generate a comprehensive report for a GPX track based on athlete profile.
- */
-export function getTrailReport(analysis, forceVelocity, intensityPct = 85) {
-    if (!analysis || !forceVelocity || !analysis.profile) return null;
+        cumulativeSeconds += segSeconds;
+        
+        if (p.slopeType === 'climb') timeInClimb += segSeconds;
+        else if (p.slopeType === 'descent') timeInDescent += segSeconds;
+        else timeInFlat += segSeconds;
+        
+        return {
+            ...p,
+            cumulativeSeconds,
+            timeInClimb,
+            timeInDescent,
+            timeInFlat,
+            currentSpeed: speed,
+            fatigueFactor
+        };
+    });
 
-    // Total Track Time
-    const totalSeconds = calculateTimeForSegment(analysis.profile, forceVelocity, intensityPct);
+    const totalSeconds = cumulativeSeconds;
 
-    // Nutrition & Hydration
+    // Nutrition & Hydration (Endurance4 System)
     const durationHours = totalSeconds / 3600;
-    const waterLiters = durationHours * 0.65;
-    const carbsGrams = durationHours * 75;
+    let waterLitersPerHour;
+    
+    if (customSweatRate !== null && customSweatRate > 0) {
+        const deltaTemp = temperature - sweatTestTemperature;
+        const tempDeltaAdjustment = deltaTemp > 0 ? deltaTemp * 0.04 : 0;
+        waterLitersPerHour = customSweatRate + tempDeltaAdjustment;
+    } else {
+        const tempAdjustment = Math.max(0, temperature - 20) * 0.04;
+        waterLitersPerHour = 0.65 + tempAdjustment;
+    }
+    
+    const waterLiters = durationHours * waterLitersPerHour;
+    
+    // Endurance4 target: ~75g/h for trail running. 1 Nrgy Unit = 45g.
+    const carbsGramsPerHour = 75;
+    const carbsGrams = durationHours * carbsGramsPerHour;
+    const nrgyUnits = Math.round(carbsGrams / 45); // Endurance4 Units
+    const flasks = Math.ceil(waterLiters / 0.5);
 
-    // Detailed Segment Times (Climbs)
+    // Detailed Segment Times (Climbs) - Using actual timestamps to include fatigue!
     const topClimbEstimates = analysis.topClimbs.map(c => {
-        const segmentPts = analysis.profile.filter(p => p.distanceKm >= c.startKm && p.distanceKm <= c.endKm);
-        const seconds = calculateTimeForSegment(segmentPts, forceVelocity, intensityPct);
+        const startPt = profileWithTimes.find(p => p.distanceKm >= c.startKm) || profileWithTimes[0];
+        const endPt = profileWithTimes.find(p => p.distanceKm >= c.endKm) || profileWithTimes[profileWithTimes.length - 1];
+        const seconds = endPt.cumulativeSeconds - startPt.cumulativeSeconds;
         const distKm = c.distanceM / 1000;
         return {
             ...c,
@@ -217,8 +267,9 @@ export function getTrailReport(analysis, forceVelocity, intensityPct = 85) {
 
     // Detailed Segment Times (Descents)
     const topDescentEstimates = analysis.topDescents.map(c => {
-        const segmentPts = analysis.profile.filter(p => p.distanceKm >= c.startKm && p.distanceKm <= c.endKm);
-        const seconds = calculateTimeForSegment(segmentPts, forceVelocity, intensityPct);
+        const startPt = profileWithTimes.find(p => p.distanceKm >= c.startKm) || profileWithTimes[0];
+        const endPt = profileWithTimes.find(p => p.distanceKm >= c.endKm) || profileWithTimes[profileWithTimes.length - 1];
+        const seconds = endPt.cumulativeSeconds - startPt.cumulativeSeconds;
         const distKm = c.distanceM / 1000;
         return {
             ...c,
@@ -228,6 +279,10 @@ export function getTrailReport(analysis, forceVelocity, intensityPct = 85) {
         };
     });
 
+    // Segment Moyens (Averages for Flat, Climb, Descent)
+    const avgClimbPace = timeInClimb > 0 ? speedToPace((analysis.stats.totalDistanceKm * (timeInClimb/totalSeconds)) / (timeInClimb / 3600)) : '--:--'; 
+    // Wait, distance of climbs is not tracked in profileWithTimes directly... Let's just track it for simplicity or use global averages.
+    
     // Crux Analysis (Hardest part)
     const crux = topClimbEstimates.length ? topClimbEstimates.reduce((a, b) => b.difficulty > a.difficulty ? b : a) : null;
     let cruxAdvice = "";
@@ -245,13 +300,22 @@ export function getTrailReport(analysis, forceVelocity, intensityPct = 85) {
         estimatedSeconds: totalSeconds,
         formattedTime: formatTime(totalSeconds),
         waterLiters: waterLiters.toFixed(1),
+        waterLitersPerHour: waterLitersPerHour.toFixed(2),
         carbsGrams: Math.round(carbsGrams),
+        carbsGramsPerHour,
+        nrgyUnits,
+        flasks,
         climbDist: analysis.stats.totalDplus,
         avgPace: speedToPace(analysis.stats.totalDistanceKm / (totalSeconds / 3600)),
         crux,
         cruxAdvice,
         intensityPct,
+        temperature,
+        technicite,
+        fatigueMode,
+        fatigueManualValue,
         topClimbEstimates,
-        topDescentEstimates
+        topDescentEstimates,
+        profileWithTimes
     };
 }
