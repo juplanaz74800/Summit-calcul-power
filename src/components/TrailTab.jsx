@@ -546,52 +546,52 @@ export default function TrailTab() {
 
                         {/* Sidebar: Diagnostics & Logistics */}
                         <div className="space-y-8">
-                            <div className="bg-surface-container-high p-10 rounded-[3rem] shadow-sm relative overflow-hidden group">
+                            <div className="bg-primary p-10 rounded-[3rem] text-white shadow-2xl shadow-primary/20 group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[60px] -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000 pointer-events-none" />
                                 
                                 <div className="mb-12">
                                     <button 
                                         onClick={() => setShowSweatTest(!showSweatTest)}
-                                        className="w-full flex items-center justify-between bg-white/5 p-4 rounded-2xl hover:bg-white/10 transition-colors"
+                                        className="w-full flex items-center justify-between bg-white/10 p-4 rounded-2xl hover:bg-white/20 transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <Droplets className="w-4 h-4 text-primary-container" />
-                                            <span className="text-xs font-black text-white/80 uppercase tracking-widest font-space">Calculateur de Test Hydrique</span>
+                                            <Droplets className="w-4 h-4 text-white" />
+                                            <span className="text-xs font-black text-white uppercase tracking-widest font-space">Calculateur de Test Hydrique</span>
                                         </div>
-                                        <span className="text-white/50 text-xs">{showSweatTest ? 'Fermer' : 'Ouvrir'}</span>
+                                        <span className="text-white/70 text-xs">{showSweatTest ? 'Fermer' : 'Ouvrir'}</span>
                                     </button>
                                     
                                     {showSweatTest && (
-                                        <div className="mt-4 p-6 bg-surface/10 rounded-2xl border border-white/10 space-y-6">
-                                            <p className="text-[10px] text-white/60 italic font-medium leading-relaxed">
+                                        <div className="mt-4 p-6 bg-white/5 rounded-2xl border border-white/10 space-y-6">
+                                            <p className="text-[10px] text-white/80 italic font-medium leading-relaxed">
                                                 Le "Sweat Test" (pesée avant/après) permet de calculer votre taux de sudation exact. Courez 1h à intensité course, pesez-vous nu avant et après, et notez ce que vous avez bu.
                                             </p>
                                             
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Poids Avant (kg)</label>
-                                                    <input type="number" step="0.1" value={weightBefore} onChange={e => setWeightBefore(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                    <label className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1 block">Poids Avant (kg)</label>
+                                                    <input type="number" step="0.1" value={weightBefore} onChange={e => setWeightBefore(Number(e.target.value))} className="w-full bg-white/10 p-2 rounded-lg text-white placeholder-white/50 border border-white/10 text-sm font-space outline-none focus:border-white/30 transition-colors" />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Poids Après (kg)</label>
-                                                    <input type="number" step="0.1" value={weightAfter} onChange={e => setWeightAfter(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                    <label className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1 block">Poids Après (kg)</label>
+                                                    <input type="number" step="0.1" value={weightAfter} onChange={e => setWeightAfter(Number(e.target.value))} className="w-full bg-white/10 p-2 rounded-lg text-white placeholder-white/50 border border-white/10 text-sm font-space outline-none focus:border-white/30 transition-colors" />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Volume bu (Litres)</label>
-                                                    <input type="number" step="0.1" value={drinkVolumeL} onChange={e => setDrinkVolumeL(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                    <label className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1 block">Volume bu (Litres)</label>
+                                                    <input type="number" step="0.1" value={drinkVolumeL} onChange={e => setDrinkVolumeL(Number(e.target.value))} className="w-full bg-white/10 p-2 rounded-lg text-white placeholder-white/50 border border-white/10 text-sm font-space outline-none focus:border-white/30 transition-colors" />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Durée (min)</label>
-                                                    <input type="number" step="5" value={testDurationMins} onChange={e => setTestDurationMins(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                    <label className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1 block">Durée (min)</label>
+                                                    <input type="number" step="5" value={testDurationMins} onChange={e => setTestDurationMins(Number(e.target.value))} className="w-full bg-white/10 p-2 rounded-lg text-white placeholder-white/50 border border-white/10 text-sm font-space outline-none focus:border-white/30 transition-colors" />
                                                 </div>
                                                 <div className="col-span-2">
-                                                    <label className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1 block">Température lors du test (°C)</label>
-                                                    <input type="number" step="1" value={sweatTestTemp} onChange={e => setSweatTestTemp(Number(e.target.value))} className="w-full bg-surface-container p-2 rounded-lg text-white text-sm font-space" />
+                                                    <label className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1 block">Température lors du test (°C)</label>
+                                                    <input type="number" step="1" value={sweatTestTemp} onChange={e => setSweatTestTemp(Number(e.target.value))} className="w-full bg-white/10 p-2 rounded-lg text-white placeholder-white/50 border border-white/10 text-sm font-space outline-none focus:border-white/30 transition-colors" />
                                                 </div>
                                             </div>
                                             
-                                            <div className="bg-primary/20 p-3 rounded-lg border border-primary/30 flex justify-between items-center">
-                                                <span className="text-[10px] font-black text-primary-container uppercase tracking-widest">Taux calculé</span>
+                                            <div className="bg-white/20 p-3 rounded-lg border border-white/30 flex justify-between items-center shadow-inner">
+                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Taux calculé</span>
                                                 <span className="text-lg font-black text-white font-space">{customSweatRate > 0 ? customSweatRate.toFixed(2) : 0} L/h</span>
                                             </div>
                                         </div>
